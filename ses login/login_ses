@@ -1,0 +1,64 @@
+
+// controller code
+
+public function adminLogin() {
+
+		$this->form_validation->set_rules('adminname', 'adminname', 'trim|required|xss_clean');
+		$this->form_validation->set_rules('password', 'password', 'trim|required|xss_clean');
+
+		if ($this->form_validation->run() == FALSE) {
+			if(isset($this->session->userdata['loggedin_admin'])){
+				
+				$this->load->view('adminheader');
+				$this->load->view('adminhome');
+			}else{
+				$this->load->view('adminlogin');
+			}
+		} else {
+			$data = array(
+				'adminname' => $this->input->post('adminname'),
+				'password' => $this->input->post('password')
+				);
+			$result = $this->adminmodel->adminLogin($data);
+
+
+			if($result)
+			{
+				foreach($result as $row)
+				{
+					$sess_array = array(
+						'adminname' => $row->admin_name,
+						'password' => $row->password
+						);
+				}
+				$this->session->set_userdata('loggedin_admin', $sess_array);
+				
+				$this->load->view('adminheader');
+				$this->load->view('adminhome');
+			}
+			else
+			{
+				$data = array('error_message' => 'Invalid Username or Password');
+				$this->load->view('adminlogin', $data);
+
+			}
+		}
+	}
+
+
+
+
+//model code
+
+public function adminLogin($data) {
+
+    $this->db->select('*');
+    $this->db->from('adminlogin');
+    $this->db->where('admin_name', $data['adminname']); 
+    $this->db->where('password', $data['password']); 
+    $this->db->limit(1);
+    $query = $this->db->get();
+
+    return $query->result();
+  }
+
