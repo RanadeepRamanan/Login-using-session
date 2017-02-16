@@ -1,0 +1,47 @@
+/** view page **/
+		<div class="search-box">
+                        <span class="searchtoggle"><i class="awe-icon awe-icon-search" ></i></span>
+                        <form class="form-search" action="<?php echo base_url();?>search" method="get">
+                            <div class="form-item">
+                                <input type="text" name="searchValue" id="searchValue" autocomplete="off" value="Search your auditorium">
+                            </div>
+                        </form>
+                </div>
+/** controller **/
+
+public function search()
+	{
+		if($this->input->get()) {	
+
+			$data['anyvalue']=$this->input->get('searchValue');
+			$config['base_url'] = base_url().'/search?';
+
+			
+
+			$this->load->model('user_model');
+				if($this->user_model->searchindb($data)) {	
+				
+				$data['data']= $this->user_model->searchindb($data);
+				
+				$this->load->view('view', $data); 
+				$this->load->view('footer');
+			} else {
+				
+				$data['noresult'] = "No Results found.";
+				
+				$this->load->view('view',$data);
+				$this->load->view('footer');
+			}
+
+		} 
+	}
+/** model**/
+
+public function searchindb($data,$limit,$start)
+{
+  $this->db->select('*');
+  $this->db->where('MATCH (audi_name) AGAINST ("'.$data['anyvalue'].'")', NULL, FALSE);
+  $this->db->limit($limit,$start);  
+  $query=$this->db->get('auditorium_details');
+  return $query->result();
+}
